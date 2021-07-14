@@ -325,16 +325,41 @@ module Jazzy
                    'e.g. https://realm.io/docsets/realm.xml)',
       parse: ->(d) { URI(d) }
 
-    config_attr :github_url,
-      command_line: ['-g', '--github_url URL'],
-      description: 'GitHub URL of this project (e.g. '\
-                   'https://github.com/realm/realm-cocoa)',
+    SOURCE_HOSTS = %w[github gitlab bitbucket].freeze
+
+    config_attr :source_host,
+      command_line: "--source-host #{SOURCE_HOSTS.join(' | ')}",
+      description: ['The source-code hosting site to be linked from documentation.',
+                    'This setting affects the logo image and link format.',
+                    "Default: 'github'"],
+      default: 'github',
+      parse: ->(host) do
+        return host.to_sym if SOURCE_HOSTS.include?(host)
+
+        raise "Unsupported source_host '#{host}', "\
+          "supported values: #{SOURCE_HOSTS.join(', ')}"
+      end
+
+    config_attr :source_host_url,
+      command_line: ['--source-host-url URL'],
+      description: ["URL to link from the source host's logo.",
+                    'For example https://github.com/realm/realm-cocoa'],
       parse: ->(g) { URI(g) }
 
-    config_attr :github_file_prefix,
+    alias_config_attr :github_url, :source_host_url,
+      command_line: ['-g', '--github_url URL'],
+      description: 'Back-compatibility alias for source_host_url.'
+
+    config_attr :source_host_file_url,
+      command_line: '--source-host-file-url PREFIX',
+      description: [
+        'The base URL on the source host to link from individual declarations.',
+        'For example https://github.com/realm/realm-cocoa/tree/v0.87.1',
+      ]
+
+    alias_config_attr :github_file_prefix, :source_host_file_url,
       command_line: '--github-file-prefix PREFIX',
-      description: 'GitHub URL file prefix of this project (e.g. '\
-                   'https://github.com/realm/realm-cocoa/tree/v0.87.1)'
+      description: 'Back-compatibility alias for source_host_file_url'
 
     config_attr :docset_playground_url,
       command_line: '--docset-playground-url URL',
