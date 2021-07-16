@@ -4,6 +4,7 @@ require 'uri'
 
 require 'jazzy/config'
 require 'jazzy/source_declaration'
+require 'jazzy/source_host'
 
 module Jazzy
   class SourceModule
@@ -17,6 +18,7 @@ module Jazzy
     attr_accessor :github_file_prefix
     attr_accessor :author_url
     attr_accessor :dash_url
+    attr_accessor :host
 
     def initialize(options, docs, doc_structure, doc_coverage)
       self.docs = docs
@@ -28,6 +30,7 @@ module Jazzy
       self.github_url = options.github_url
       self.github_file_prefix = options.github_file_prefix
       self.author_url = options.author_url
+      self.host = SourceHost.create(options)
       return unless options.dash_url
 
       self.dash_url =
