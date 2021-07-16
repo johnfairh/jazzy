@@ -134,7 +134,7 @@ module Jazzy
         SearchBuilder.build(source_module, output_dir)
       end
 
-      copy_extensions(output_dir)
+      copy_extensions(source_module, output_dir)
       copy_theme_assets(output_dir)
 
       DocsetBuilder.new(output_dir, source_module).build!
@@ -219,7 +219,10 @@ module Jazzy
       end
     end
 
-    def self.copy_extensions(destination)
+    def self.copy_extensions(source_module, destination)
+      if source_host = source_module.host&.extension
+        copy_extension(source_host, destination)
+      end
       copy_extension('katex', destination) if Markdown.has_math
     end
 
@@ -251,7 +254,12 @@ module Jazzy
       doc[:structure] = source_module.doc_structure
       doc[:module_name] = source_module.name
       doc[:author_name] = source_module.author_name
-      doc[:github_url] = source_module.github_url
+      if source_host = source_module.host
+        doc[:source_host_name] = source_host.name
+        doc[:source_host_url] = source_host.url
+        doc[:source_host_image] = source_host.image
+        doc[:github_url] = doc[:source_host_url]
+      end
       doc[:dash_url] = source_module.dash_url
       doc[:path_to_root] = path_to_root
       doc[:hide_name] = true
@@ -452,7 +460,12 @@ module Jazzy
       doc[:tasks] = render_tasks(source_module, doc_model.children)
       doc[:module_name] = source_module.name
       doc[:author_name] = source_module.author_name
-      doc[:github_url] = source_module.github_url
+      if source_host = source_module.host
+        doc[:source_host_name] = source_host.name
+        doc[:source_host_url] = source_host.url
+        doc[:source_host_image] = source_host.image
+        doc[:github_url] = doc[:source_host_url]
+      end
       doc[:github_token_url] = gh_token_url(doc_model, source_module)
       doc[:dash_url] = source_module.dash_url
       doc[:path_to_root] = path_to_root
