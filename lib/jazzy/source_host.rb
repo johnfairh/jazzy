@@ -38,15 +38,24 @@ module Jazzy
         config.source_host_url
       end
 
-      # URL to link to from a SourceDeclaration
+      # URL to link to from a SourceDeclaration.
+      # Compare using `realpath` because `item.file` comes out of
+      # SourceKit/etc.
       def item_url(item)
         return unless file_url && item.file
 
         realpath = item.file.realpath
-        return unless realpath.to_s.start_with?(local_root_path)
+        return unless realpath.to_path.start_with?(local_root_realpath)
 
-        path = realpath.relative_path_from(lcoal_root_path)
-        "#{file_url}/#{path}##{item_url_fragment(item)}"
+        path = realpath.relative_path_from(local_root_realpath)
+        fragment =
+          if item.start_line && (item.start_line != item.end_line)
+            item_url_multiline_fragment(item.start_line, item.end_line)
+          else
+            item_url_line_fragment(item.line)
+          end
+
+        "#{file_url}/#{path}##{fragment}"
       end
 
       private
@@ -55,17 +64,18 @@ module Jazzy
         config.source_host_file_url
       end
 
-      def local_root_path
-        config.source_directory
+      def local_root_realpath
+        @local_root_realpath ||= config.source_directory.realpath.to_path
       end
 
       # Source host's line numbering link scheme
-      def item_url_fragment(item)
-        if item.start_line && (item.start_line != item.end_line)
-          "L#{item.start_line}-L#{item.end_line}"
-        else
-          "L#{item.line}"
-        end
+      #
+      def item_url_line_fragment(line)
+        "L#{line}"
+      end
+
+      def item_url_multiline_fragment(start_line, end_line)
+        "L#{start_line}-L#{end_line}"
       end
     end
 
@@ -90,12 +100,12 @@ module Jazzy
         'bitbucket.svg'
       end
 
-      def item_url_fragment(item)
-        if item.start_line && (item.start_line != item.end_line)
-          "line-#{item.start_line}:#{item.end_line}"
-        else
-          "line-#{item.line}"
-        end
+      def item_url_line_fragment(line)
+        "lines-#{line}"
+      end
+
+      def item_url_multiline_fragment(start_line, end_line)
+        "lines-#{start_line}:#{end_line}"
       end
     end
   end
